@@ -1,0 +1,34 @@
+# Example configuration file for podman-swarm
+# Place this at ~/.config/podman-swarm/hosts.yaml
+
+hosts:
+  - name: web-server-1
+    address: 192.168.1.10
+    username: ubuntu
+    private_key: ~/.ssh/id_rsa
+
+  - name: web-server-2
+    address: 192.168.1.11
+    username: ubuntu
+    private_key: ~/.ssh/id_rsa
+
+  - name: db-server
+    address: 192.168.1.20
+    username: ubuntu
+    private_key: ~/.ssh/id_rsa
+
+groups:
+  - name: web
+    hosts:
+      - web-server-1
+      - web-server-2
+
+  - name: databases
+    hosts:
+      - db-server
+
+  - name: all
+    hosts:
+      - web-server-1
+      - web-server-2
+      - db-server
