@@ -1,6 +1,6 @@
 module github.com/ytnobody/podman-swarm
 
-go 1.21
+go 1.16
 
 require (
 	github.com/spf13/cobra v1.7.0
