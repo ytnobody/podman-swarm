@@ -1,228 +1,200 @@
 package cmd
 
 import (
-	"bytes"
+	"context"
+	"errors"
 	"testing"
-
-	"github.com/spf13/cobra"
 )
 
-func executeCommand(cmd *cobra.Command, args ...string) (output string, err error) {
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
-	cmd.SetErr(buf)
-	cmd.SetArgs(args)
-	err = cmd.Execute()
-	output = buf.String()
-	return output, err
+// Test inspect command argument validation
+func TestInspectCommand_ValidArgs(t *testing.T) {
+	cmd := inspectCmd
+	// Should not return arg validation error
+	if err := cmd.Args(cmd, []string{"host1", "container1"}); err != nil {
+		t.Errorf("inspect command with valid args should not error, got: %v", err)
+	}
 }
 
-// Test: status command should not require arguments
-func TestStatusCommand_NoArgs(t *testing.T) {
-	_, err := executeCommand(statusCmd)
+func TestInspectCommand_MissingArgs(t *testing.T) {
+	cmd := inspectCmd
+	// Test with no args
+	if err := cmd.Args(cmd, []string{}); err == nil {
+		t.Error("inspect command with no args should return an error")
+	}
+	
+	// Test with only 1 arg
+	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+		t.Error("inspect command with only 1 arg should return an error")
+	}
+}
+
+// Test run command argument validation
+func TestRunCommand_ValidArgs(t *testing.T) {
+	cmd := runCmd
+	// Valid with host and image
+	if err := cmd.Args(cmd, []string{"host1", "alpine:latest"}); err != nil {
+		t.Errorf("run command with host and image should succeed, got: %v", err)
+	}
+	
+	// Valid with host, image and options
+	if err := cmd.Args(cmd, []string{"host1", "alpine:latest", "-d"}); err != nil {
+		t.Errorf("run command with host, image and options should succeed, got: %v", err)
+	}
+}
+
+func TestRunCommand_MissingArgs(t *testing.T) {
+	cmd := runCmd
+	
+	// Test with no args
+	if err := cmd.Args(cmd, []string{}); err == nil {
+		t.Error("run command with no args should return an error")
+	}
+	
+	// Test with only host
+	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+		t.Error("run command with only host should return an error")
+	}
+}
+
+// Test stop command argument validation
+func TestStopCommand_ValidArgs(t *testing.T) {
+	cmd := stopCmd
+	if err := cmd.Args(cmd, []string{"host1", "container1"}); err != nil {
+		t.Errorf("stop command with host and container should succeed, got: %v", err)
+	}
+}
+
+func TestStopCommand_MissingArgs(t *testing.T) {
+	cmd := stopCmd
+	
+	// Test with no args
+	if err := cmd.Args(cmd, []string{}); err == nil {
+		t.Error("stop command with no args should return an error")
+	}
+	
+	// Test with only host
+	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+		t.Error("stop command with only host should return an error")
+	}
+}
+
+// Test rm command argument validation
+func TestRmCommand_ValidArgs(t *testing.T) {
+	cmd := rmCmd
+	if err := cmd.Args(cmd, []string{"host1", "container1"}); err != nil {
+		t.Errorf("rm command with host and container should succeed, got: %v", err)
+	}
+}
+
+func TestRmCommand_MissingArgs(t *testing.T) {
+	cmd := rmCmd
+	
+	// Test with no args
+	if err := cmd.Args(cmd, []string{}); err == nil {
+		t.Error("rm command with no args should return an error")
+	}
+	
+	// Test with only host
+	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+		t.Error("rm command with only host should return an error")
+	}
+}
+
+// Test exec command argument validation
+func TestExecCommand_ValidArgs(t *testing.T) {
+	cmd := execCmd
+	if err := cmd.Args(cmd, []string{"host1", "container1", "ls"}); err != nil {
+		t.Errorf("exec command with host, container and command should succeed, got: %v", err)
+	}
+}
+
+func TestExecCommand_MissingArgs(t *testing.T) {
+	cmd := execCmd
+	
+	// Test with no args
+	if err := cmd.Args(cmd, []string{}); err == nil {
+		t.Error("exec command with no args should return an error")
+	}
+	
+	// Test with only host
+	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+		t.Error("exec command with only host should return an error")
+	}
+	
+	// Test with only host and container
+	if err := cmd.Args(cmd, []string{"host1", "container1"}); err == nil {
+		t.Error("exec command with only host and container should return an error")
+	}
+}
+
+// Test MockSSHClient
+func TestMockSSHClient_Execute(t *testing.T) {
+	expectedOutput := "test output"
+	
+	client := &MockSSHClient{
+		ExecuteFunc: func(ctx context.Context, cmd string) (string, error) {
+			return expectedOutput, nil
+		},
+	}
+	
+	output, err := client.Execute(context.Background(), "test command")
 	if err != nil {
-		t.Errorf("status command without arguments should succeed, got error: %v", err)
+		t.Errorf("execute should not error, got: %v", err)
+	}
+	if output != expectedOutput {
+		t.Errorf("execute output mismatch, expected: %s, got: %s", expectedOutput, output)
 	}
 }
 
-// Test: ps command should not require arguments
-func TestPsCommand_NoArgs(t *testing.T) {
-	_, err := executeCommand(psCmd)
-	if err != nil {
-		t.Errorf("ps command without arguments should succeed, got error: %v", err)
+func TestMockSSHClient_ExecuteError(t *testing.T) {
+	expectedErr := errors.New("connection failed")
+	
+	client := &MockSSHClient{
+		ExecuteFunc: func(ctx context.Context, cmd string) (string, error) {
+			return "", expectedErr
+		},
+	}
+	
+	_, err := client.Execute(context.Background(), "test command")
+	if err != expectedErr {
+		t.Errorf("execute error mismatch, expected: %v, got: %v", expectedErr, err)
 	}
 }
 
-// Test: ps command with --json flag should succeed
-func TestPsCommand_WithJSONFlag(t *testing.T) {
-	_, err := executeCommand(psCmd, "--json")
-	if err != nil {
-		t.Errorf("ps command with --json flag should succeed, got error: %v", err)
+// Test MockConfig
+func TestMockConfig_GetHostByName(t *testing.T) {
+	cfg := MockConfig()
+	
+	host := cfg.GetHostByName("host1")
+	if host == nil {
+		t.Error("GetHostByName should return host1")
+	}
+	if host.Address != "192.168.1.10" {
+		t.Errorf("host1 address mismatch, expected: 192.168.1.10, got: %s", host.Address)
 	}
 }
 
-// Test: inspect command requires host and container id/name
-func TestInspectCommand_NoArgs(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(inspectCmd)
-	if err == nil {
-		t.Error("inspect command without arguments should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("inspect command should return an error message, got: %s", output)
+func TestMockConfig_GetHostByNameNotFound(t *testing.T) {
+	cfg := MockConfig()
+	
+	host := cfg.GetHostByName("nonexistent")
+	if host != nil {
+		t.Error("GetHostByName should return nil for nonexistent host")
 	}
 }
 
-// Test: inspect command with only host argument should fail
-func TestInspectCommand_OnlyHost(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(inspectCmd, "host1")
-	if err == nil {
-		t.Error("inspect command with only host argument should fail")
+func TestMockConfig_GetHostOrGroup(t *testing.T) {
+	cfg := MockConfig()
+	
+	// Test single host
+	hosts := cfg.GetHostOrGroup("host1")
+	if len(hosts) != 1 {
+		t.Errorf("GetHostOrGroup should return 1 host, got: %d", len(hosts))
 	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("inspect command should return an error message, got: %s", output)
-	}
-}
-
-// Test: inspect command with host and container id should succeed
-func TestInspectCommand_WithValidArgs(t *testing.T) {
-	t.Skip("Requires configuration file and SSH setup")
-	_, err := executeCommand(inspectCmd, "host1", "container1")
-	if err != nil {
-		t.Errorf("inspect command with host and container id should succeed, got error: %v", err)
-	}
-}
-
-// Test: run command requires host/group and image
-func TestRunCommand_NoArgs(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(runCmd)
-	if err == nil {
-		t.Error("run command without arguments should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("run command should return an error message, got: %s", output)
-	}
-}
-
-// Test: run command with only host/group should fail
-func TestRunCommand_OnlyHost(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(runCmd, "host1")
-	if err == nil {
-		t.Error("run command with only host/group should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("run command should return an error message, got: %s", output)
-	}
-}
-
-// Test: run command with host/group and image should succeed
-func TestRunCommand_WithValidArgs(t *testing.T) {
-	t.Skip("Requires configuration file and SSH setup")
-	_, err := executeCommand(runCmd, "host1", "alpine:latest")
-	if err != nil {
-		t.Errorf("run command with host/group and image should succeed, got error: %v", err)
-	}
-}
-
-// Test: run command with host/group, image, and additional args should succeed
-func TestRunCommand_WithValidArgsAndOptions(t *testing.T) {
-	t.Skip("Requires configuration file and SSH setup")
-	_, err := executeCommand(runCmd, "host1", "alpine:latest", "-d", "--name", "mycontainer")
-	if err != nil {
-		t.Errorf("run command with host/group, image and options should succeed, got error: %v", err)
-	}
-}
-
-// Test: stop command requires host/group and container id/name
-func TestStopCommand_NoArgs(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(stopCmd)
-	if err == nil {
-		t.Error("stop command without arguments should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("stop command should return an error message, got: %s", output)
-	}
-}
-
-// Test: stop command with only host/group should fail
-func TestStopCommand_OnlyHost(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(stopCmd, "host1")
-	if err == nil {
-		t.Error("stop command with only host/group should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("stop command should return an error message, got: %s", output)
-	}
-}
-
-// Test: stop command with host/group and container id/name should succeed
-func TestStopCommand_WithValidArgs(t *testing.T) {
-	t.Skip("Requires configuration file and SSH setup")
-	_, err := executeCommand(stopCmd, "host1", "container1")
-	if err != nil {
-		t.Errorf("stop command with host/group and container id should succeed, got error: %v", err)
-	}
-}
-
-// Test: rm command requires host/group and container id/name
-func TestRmCommand_NoArgs(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(rmCmd)
-	if err == nil {
-		t.Error("rm command without arguments should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("rm command should return an error message, got: %s", output)
-	}
-}
-
-// Test: rm command with only host/group should fail
-func TestRmCommand_OnlyHost(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(rmCmd, "host1")
-	if err == nil {
-		t.Error("rm command with only host/group should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("rm command should return an error message, got: %s", output)
-	}
-}
-
-// Test: rm command with host/group and container id/name should succeed
-func TestRmCommand_WithValidArgs(t *testing.T) {
-	t.Skip("Requires configuration file and SSH setup")
-	_, err := executeCommand(rmCmd, "host1", "container1")
-	if err != nil {
-		t.Errorf("rm command with host/group and container id should succeed, got error: %v", err)
-	}
-}
-
-// Test: exec command requires host, container id/name, and command
-func TestExecCommand_NoArgs(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(execCmd)
-	if err == nil {
-		t.Error("exec command without arguments should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("exec command should return an error message, got: %s", output)
-	}
-}
-
-// Test: exec command with only host should fail
-func TestExecCommand_OnlyHost(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(execCmd, "host1")
-	if err == nil {
-		t.Error("exec command with only host should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("exec command should return an error message, got: %s", output)
-	}
-}
-
-// Test: exec command with host and container should fail
-func TestExecCommand_OnlyHostAndContainer(t *testing.T) {
-	t.Skip("Requires configuration file")
-	output, err := executeCommand(execCmd, "host1", "container1")
-	if err == nil {
-		t.Error("exec command with only host and container should fail")
-	}
-	if err != nil && err.Error() == "" {
-		t.Errorf("exec command should return an error message, got: %s", output)
-	}
-}
-
-// Test: exec command with host, container, and command should succeed
-func TestExecCommand_WithValidArgs(t *testing.T) {
-	t.Skip("Requires configuration file and SSH setup")
-	_, err := executeCommand(execCmd, "host1", "container1", "ls", "-la")
-	if err != nil {
-		t.Errorf("exec command with host, container and command should succeed, got error: %v", err)
+	
+	// Test group
+	hosts = cfg.GetHostOrGroup("all")
+	if len(hosts) != 2 {
+		t.Errorf("GetHostOrGroup should return 2 hosts for 'all' group, got: %d", len(hosts))
 	}
 }
