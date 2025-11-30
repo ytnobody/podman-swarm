@@ -1,72 +1,72 @@
-## 📝 CLIツール「podman-swarm」要件定義書 (最終版)
+## 📝 CLI Tool "podman-swarm" Requirements Definition (Final Version)
 
-### 1. 概要とアーキテクチャ
+### 1. Overview and Architecture
 
-| 項目 | 詳細 |
+| Item | Details |
 | :--- | :--- |
-| **システム名** | **podman-swarm** |
-| **CLIバイナリ名** | `podman-swarm` |
-| **目的** | SSHを唯一の通信チャネルとし、複数のリモートホスト上のPodmanコンテナ群を中央のCLIから一元的に管理・操作する。 |
-| **アーキテクチャ** | **エージェントレス**。Podman-swarm (Go CLI) が、リモートホストの`sshd`を経由し、**ネイティブな `podman` コマンド**を直接実行する。 |
-| **ターゲットコンテナ** | Podmanコンテナ |
+| **System Name** | **podman-swarm** |
+| **CLI Binary Name** | `podman-swarm` |
+| **Purpose** | Using SSH as the sole communication channel, centrally manage and operate Podman container groups across multiple remote hosts from a central CLI. |
+| **Architecture** | **Agent-less**. Podman-swarm (Go CLI) executes **native `podman` commands** directly via `sshd` on remote hosts. |
+| **Target Container** | Podman containers |
 
 ---
 
-### 2. 機能要件 (Functional Requirements)
+### 2. Functional Requirements
 
-#### 2.1. インベントリ管理機能 (設定ファイル)
+#### 2.1. Inventory Management Feature (Configuration File)
 
-Podman-swarmは、管理対象ホストの情報を設定ファイル（推奨：YAML形式）で保持します。
+Podman-swarm maintains information about managed hosts in a configuration file (recommended: YAML format).
 
-| ID | 機能 | 詳細 |
+| ID | Feature | Details |
 | :--- | :--- | :--- |
-| **F-01** | **設定ファイル読み込み** | YAML形式の設定ファイル（デフォルト: `~/.config/podman-swarm/hosts.yaml`などを想定）からホスト情報を読み込むこと。 |
-| **F-02** | **接続情報定義** | 各ホストに対し、**ホスト名/IPアドレス**、**SSHユーザー名**、**SSH秘密鍵のパス**を設定できること。 |
-| **F-03** | **グループ化** | ホストを論理的なグループ（例: `web`, `db`）に分けて定義し、グループ単位でコマンドを実行できること。 |
+| **F-01** | **Configuration File Loading** | Load host information from a YAML-formatted configuration file (default: `~/.config/podman-swarm/hosts.yaml` or similar). |
+| **F-02** | **Connection Information Definition** | Be able to configure **hostname/IP address**, **SSH username**, and **SSH private key path** for each host. |
+| **F-03** | **Grouping** | Define hosts in logical groups (e.g., `web`, `db`), and be able to execute commands on a group basis. |
 
-#### 2.2. 情報収集（参照）機能
+#### 2.2. Information Collection (Reference) Features
 
-リモートで `podman` コマンドを実行し、結果を集約・整形して表示します。
+Execute `podman` commands remotely and aggregate and format the results for display.
 
-| ID | コマンド名 | 機能 | 詳細 |
+| ID | Command Name | Feature | Details |
 | :--- | :--- | :--- | :--- |
-| **F-10** | `podman-swarm status` | **全ホスト稼働状況一覧表示** | 全ホストに対し並行処理でSSH接続を試行し、接続可否、および `podman info` の実行可否を確認して、ステータスをテーブル表示する。 |
-| **F-11** | `podman-swarm ps` | **全コンテナ情報一覧表示** | 全ホストに対し `podman ps -a --format json` を実行し、結果をManager側で集約。**ホスト名を含む**テーブル形式で一覧表示する。 |
-| **F-12** | `podman-swarm inspect <host> <cid/name>` | **特定コンテナ詳細表示** | 指定ホスト上で `podman inspect` を実行し、結果をJSON形式などで表示する。 |
+| **F-10** | `podman-swarm status` | **Display Status of All Hosts** | Attempt SSH connections to all hosts in parallel, confirm connection availability and `podman info` execution capability, and display status in table format. |
+| **F-11** | `podman-swarm ps` | **Display Container Information List for All Hosts** | Execute `podman ps -a --format json` on all hosts and aggregate results on the Manager side. Display in table format **including hostname**. |
+| **F-12** | `podman-swarm inspect <host> <cid/name>` | **Display Specific Container Details** | Execute `podman inspect` on the specified host and display results in JSON format or similar. |
 
-#### 2.3. 指令（操作）機能
+#### 2.3. Command (Operation) Features
 
-リモートホスト上のネイティブな `podman` コマンドを、グループまたは単一ホストに実行します。
+Execute native `podman` commands on remote hosts for a group or single host.
 
-| ID | コマンド名 | 機能 | 詳細 |
+| ID | Command Name | Feature | Details |
 | :--- | :--- | :--- | :--- |
-| **F-20** | `podman-swarm run <host/group> <image> ...` | **コンテナの作成と起動** | リモートで `podman run` コマンドを実行する。`podman-swarm`は後続の引数（`-d`, `--name`, `-p`など）を透過的にリモートに渡すこと。 |
-| **F-21** | `podman-swarm stop <host/group> <cid/name>` | **コンテナの停止** | リモートで `podman stop` を実行する。 |
-| **F-22** | `podman-swarm rm <host/group> <cid/name>` | **コンテナの削除** | リモートで `podman rm` を実行する。 |
-| **F-23** | `podman-swarm exec <host> <cid/name> <cmd>` | **コンテナ内でのコマンド実行** | リモートで `podman exec` を実行し、結果をManager側に返すこと。 |
+| **F-20** | `podman-swarm run <host/group> <image> ...` | **Create and Start Containers** | Execute `podman run` command remotely. `podman-swarm` should transparently pass subsequent arguments (`-d`, `--name`, `-p`, etc.) to the remote. |
+| **F-21** | `podman-swarm stop <host/group> <cid/name>` | **Stop Containers** | Execute `podman stop` remotely. |
+| **F-22** | `podman-swarm rm <host/group> <cid/name>` | **Delete Containers** | Execute `podman rm` remotely. |
+| **F-23** | `podman-swarm exec <host> <cid/name> <cmd>` | **Execute Commands Inside Containers** | Execute `podman exec` remotely and return results to the Manager side. |
 
 ---
 
-### 3. 非機能要件 (Non-Functional Requirements)
+### 3. Non-Functional Requirements
 
-| ID | 要件 | 詳細 |
+| ID | Requirement | Details |
 | :--- | :--- | :--- |
-| **N-01** | **開発言語** | **Go (Golang)**。単一の静的バイナリとしてビルドされること。 |
-| **N-02** | **通信プロトコル** | すべての通信は**SSH (Port 22)** のみを介して行われること。他のポートを外部に公開しないこと。 |
-| **N-03** | **認証方式** | SSHの**公開鍵認証**のみをサポートすること。 |
-| **N-04** | **並行処理** | 複数ホストへのSSH接続およびコマンド実行は、**ゴルーチン**を利用して並行処理され、処理速度を最適化すること。 |
-| **N-05** | **依存関係** | 実行環境にGoランタイムやその他の言語（Python, Rubyなど）の依存関係を持たないこと。 |
-| **N-06** | **エラー処理** | SSH接続失敗、コマンド実行エラー、JSONパースエラーなどの発生源と詳細を明確にユーザーに通知すること。 |
-| **N-07** | **出力形式** | `ps`などの情報表示系コマンドの出力は、CLIで視認しやすい**整形されたテーブル形式**とし、必要に応じてJSON出力オプション（例: `--json`）も提供すること。 |
+| **N-01** | **Development Language** | **Go (Golang)**. Should be built as a single static binary. |
+| **N-02** | **Communication Protocol** | All communication should be conducted only via **SSH (Port 22)**. Do not expose other ports externally. |
+| **N-03** | **Authentication Method** | Support only SSH **public key authentication**. |
+| **N-04** | **Concurrent Processing** | SSH connections and command execution to multiple hosts should be processed concurrently using **goroutines** to optimize processing speed. |
+| **N-05** | **Dependencies** | The runtime environment should not have dependencies on Go runtime or other languages (Python, Ruby, etc.). |
+| **N-06** | **Error Handling** | Clearly notify the user of the source and details of SSH connection failures, command execution errors, JSON parsing errors, etc. |
+| **N-07** | **Output Format** | Output from information display commands like `ps` should be in **formatted table format** that is easy to read in the CLI, and should also provide JSON output options (e.g., `--json`) as needed. |
 
 ---
 
-### 4. 推奨技術スタック
+### 4. Recommended Technology Stack
 
-| 要素 | 技術名 | 採用理由 |
+| Element | Technology | Rationale |
 | :--- | :--- | :--- |
-| **言語** | Go (Golang) | 軽量バイナリ、並行処理、SSHライブラリの安定性。 |
-| **SSHクライアント** | `golang.org/x/crypto/ssh` | Goの標準的なSSH機能。 |
-| **CLIフレームワーク** | `github.com/spf13/cobra` | コマンドの階層化と引数処理の標準化。 |
-| **設定/インベントリ** | `github.com/spf13/viper` | YAML形式の設定ファイル読み込み。 |
-| **テーブル表示** | `github.com/olekukonko/tablewriter`など | CLI出力を視認性高く整形する。 |
+| **Language** | Go (Golang) | Lightweight binary, concurrent processing, stable SSH library. |
+| **SSH Client** | `golang.org/x/crypto/ssh` | Standard Go SSH functionality. |
+| **CLI Framework** | `github.com/spf13/cobra` | Standardization of command hierarchy and argument processing. |
+| **Configuration/Inventory** | `github.com/spf13/viper` | YAML format configuration file loading. |
+| **Table Display** | `github.com/olekukonko/tablewriter`, etc. | Format CLI output with high readability. |
