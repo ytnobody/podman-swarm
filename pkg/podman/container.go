@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/vibe-kanban/podman-swarm/pkg/ssh"
+	"github.com/ytnobody/podman-swarm/pkg/ssh"
 )
 
 type Container struct {

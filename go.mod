@@ -1,4 +1,4 @@
-module github.com/vibe-kanban/podman-swarm
+module github.com/ytnobody/podman-swarm
 
 go 1.21
 

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/vibe-kanban/podman-swarm/cmd"
+	"github.com/ytnobody/podman-swarm/cmd"
 )
 
 func main() {

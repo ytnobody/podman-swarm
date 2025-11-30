@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/vibe-kanban/podman-swarm/pkg/config"
-	"github.com/vibe-kanban/podman-swarm/pkg/ssh"
+	"github.com/ytnobody/podman-swarm/pkg/config"
+	"github.com/ytnobody/podman-swarm/pkg/ssh"
 )
 
 var stopCmd = &cobra.Command{
