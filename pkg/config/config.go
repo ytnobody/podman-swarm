@@ -9,16 +9,16 @@ import (
 )
 
 type Host struct {
-	Name       string `yaml:"name"`
-	Address    string `yaml:"address"`
-	Port       int    `yaml:"port"`
-	Username   string `yaml:"username"`
-	PrivateKey string `yaml:"private_key"`
+	Name       string `mapstructure:"name" yaml:"name"`
+	Address    string `mapstructure:"address" yaml:"address"`
+	Port       int    `mapstructure:"port" yaml:"port"`
+	Username   string `mapstructure:"username" yaml:"username"`
+	PrivateKey string `mapstructure:"private_key" yaml:"private_key"`
 }
 
 type HostGroup struct {
-	Name  string   `yaml:"name"`
-	Hosts []string `yaml:"hosts"`
+	Name  string   `mapstructure:"name" yaml:"name"`
+	Hosts []string `mapstructure:"hosts" yaml:"hosts"`
 }
 
 type Config struct {
@@ -44,6 +44,13 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	for i := range cfg.Hosts {
+		if cfg.Hosts[i].PrivateKey == "" {
+			return nil, fmt.Errorf("private_key is empty for host %s", cfg.Hosts[i].Name)
+		}
+		cfg.Hosts[i].PrivateKey = expandPath(cfg.Hosts[i].PrivateKey)
+	}
+
 	return &cfg, nil
 }
 
@@ -54,6 +61,20 @@ func getConfigPath() string {
 	
 	homeDir, _ := os.UserHomeDir()
 	return filepath.Join(homeDir, ".config", "podman-swarm", "hosts.yaml")
+}
+
+func expandPath(path string) string {
+	if path == "" {
+		return path
+	}
+	if path[0] == '~' {
+		homeDir, _ := os.UserHomeDir()
+		if len(path) > 1 && path[1] == '/' {
+			return filepath.Join(homeDir, path[2:])
+		}
+		return homeDir
+	}
+	return path
 }
 
 // GetHostByName returns a host by its name

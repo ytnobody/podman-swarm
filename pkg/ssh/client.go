@@ -35,7 +35,7 @@ func NewClient(config ClientConfig) (Client, error) {
 
 	key, err := ioutil.ReadFile(config.PrivateKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read private key: %w", err)
+		return nil, fmt.Errorf("failed to read private key: open %s: %w", config.PrivateKey, err)
 	}
 
 	signer, err := ssh.ParsePrivateKey(key)
