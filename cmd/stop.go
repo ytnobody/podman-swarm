@@ -8,6 +8,7 @@ var stopCmd = &cobra.Command{
 	Use:   "stop <host/group> <cid/name>",
 	Short: "Stop containers",
 	Long:  `Execute podman stop command remotely on specified host or group.`,
+	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO: Implement stop command
 		return nil

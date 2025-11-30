@@ -8,6 +8,7 @@ var rmCmd = &cobra.Command{
 	Use:   "rm <host/group> <cid/name>",
 	Short: "Delete containers",
 	Long:  `Execute podman rm command remotely on specified host or group.`,
+	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO: Implement rm command
 		return nil
