@@ -149,6 +149,25 @@ func TestMockSSHClient_ExecuteError(t *testing.T) {
 	}
 }
 
+// Test logs command argument validation
+func TestLogsCommand_ValidArgs(t *testing.T) {
+	if err := logsCmd.Args(logsCmd, []string{"host1", "container1"}); err != nil {
+		t.Errorf("logs command with host and container should succeed, got: %v", err)
+	}
+}
+
+func TestLogsCommand_MissingArgs(t *testing.T) {
+	// Test with no args
+	if err := logsCmd.Args(logsCmd, []string{}); err == nil {
+		t.Error("logs command with no args should return an error")
+	}
+	
+	// Test with only host
+	if err := logsCmd.Args(logsCmd, []string{"host1"}); err == nil {
+		t.Error("logs command with only host should return an error")
+	}
+}
+
 // Test MockConfig
 func TestMockConfig_GetHostByName(t *testing.T) {
 	cfg := test.MockConfig()
