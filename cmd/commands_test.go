@@ -4,125 +4,113 @@ import (
 	"context"
 	"errors"
 	"testing"
+	
+	"github.com/ytnobody/podman-swarm/cmd/internal/test"
 )
 
 // Test inspect command argument validation
 func TestInspectCommand_ValidArgs(t *testing.T) {
-	cmd := inspectCmd
 	// Should not return arg validation error
-	if err := cmd.Args(cmd, []string{"host1", "container1"}); err != nil {
+	if err := inspectCmd.Args(inspectCmd, []string{"host1", "container1"}); err != nil {
 		t.Errorf("inspect command with valid args should not error, got: %v", err)
 	}
 }
 
 func TestInspectCommand_MissingArgs(t *testing.T) {
-	cmd := inspectCmd
 	// Test with no args
-	if err := cmd.Args(cmd, []string{}); err == nil {
+	if err := inspectCmd.Args(inspectCmd, []string{}); err == nil {
 		t.Error("inspect command with no args should return an error")
 	}
 	
 	// Test with only 1 arg
-	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+	if err := inspectCmd.Args(inspectCmd, []string{"host1"}); err == nil {
 		t.Error("inspect command with only 1 arg should return an error")
 	}
 }
 
 // Test run command argument validation
 func TestRunCommand_ValidArgs(t *testing.T) {
-	cmd := runCmd
 	// Valid with host and image
-	if err := cmd.Args(cmd, []string{"host1", "alpine:latest"}); err != nil {
+	if err := runCmd.Args(runCmd, []string{"host1", "alpine:latest"}); err != nil {
 		t.Errorf("run command with host and image should succeed, got: %v", err)
 	}
 	
 	// Valid with host, image and options
-	if err := cmd.Args(cmd, []string{"host1", "alpine:latest", "-d"}); err != nil {
+	if err := runCmd.Args(runCmd, []string{"host1", "alpine:latest", "-d"}); err != nil {
 		t.Errorf("run command with host, image and options should succeed, got: %v", err)
 	}
 }
 
 func TestRunCommand_MissingArgs(t *testing.T) {
-	cmd := runCmd
-	
 	// Test with no args
-	if err := cmd.Args(cmd, []string{}); err == nil {
+	if err := runCmd.Args(runCmd, []string{}); err == nil {
 		t.Error("run command with no args should return an error")
 	}
 	
 	// Test with only host
-	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+	if err := runCmd.Args(runCmd, []string{"host1"}); err == nil {
 		t.Error("run command with only host should return an error")
 	}
 }
 
 // Test stop command argument validation
 func TestStopCommand_ValidArgs(t *testing.T) {
-	cmd := stopCmd
-	if err := cmd.Args(cmd, []string{"host1", "container1"}); err != nil {
+	if err := stopCmd.Args(stopCmd, []string{"host1", "container1"}); err != nil {
 		t.Errorf("stop command with host and container should succeed, got: %v", err)
 	}
 }
 
 func TestStopCommand_MissingArgs(t *testing.T) {
-	cmd := stopCmd
-	
 	// Test with no args
-	if err := cmd.Args(cmd, []string{}); err == nil {
+	if err := stopCmd.Args(stopCmd, []string{}); err == nil {
 		t.Error("stop command with no args should return an error")
 	}
 	
 	// Test with only host
-	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+	if err := stopCmd.Args(stopCmd, []string{"host1"}); err == nil {
 		t.Error("stop command with only host should return an error")
 	}
 }
 
 // Test rm command argument validation
 func TestRmCommand_ValidArgs(t *testing.T) {
-	cmd := rmCmd
-	if err := cmd.Args(cmd, []string{"host1", "container1"}); err != nil {
+	if err := rmCmd.Args(rmCmd, []string{"host1", "container1"}); err != nil {
 		t.Errorf("rm command with host and container should succeed, got: %v", err)
 	}
 }
 
 func TestRmCommand_MissingArgs(t *testing.T) {
-	cmd := rmCmd
-	
 	// Test with no args
-	if err := cmd.Args(cmd, []string{}); err == nil {
+	if err := rmCmd.Args(rmCmd, []string{}); err == nil {
 		t.Error("rm command with no args should return an error")
 	}
 	
 	// Test with only host
-	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+	if err := rmCmd.Args(rmCmd, []string{"host1"}); err == nil {
 		t.Error("rm command with only host should return an error")
 	}
 }
 
 // Test exec command argument validation
 func TestExecCommand_ValidArgs(t *testing.T) {
-	cmd := execCmd
-	if err := cmd.Args(cmd, []string{"host1", "container1", "ls"}); err != nil {
+	if err := execCmd.Args(execCmd, []string{"host1", "container1", "ls"}); err != nil {
 		t.Errorf("exec command with host, container and command should succeed, got: %v", err)
 	}
 }
 
 func TestExecCommand_MissingArgs(t *testing.T) {
-	cmd := execCmd
-	
 	// Test with no args
-	if err := cmd.Args(cmd, []string{}); err == nil {
+	if err := execCmd.Args(execCmd, []string{}); err == nil {
 		t.Error("exec command with no args should return an error")
 	}
 	
 	// Test with only host
-	if err := cmd.Args(cmd, []string{"host1"}); err == nil {
+	if err := execCmd.Args(execCmd, []string{"host1"}); err == nil {
 		t.Error("exec command with only host should return an error")
 	}
 	
 	// Test with only host and container
-	if err := cmd.Args(cmd, []string{"host1", "container1"}); err == nil {
+	if err := execCmd.Args(execCmd, []string{"host1", "container1"}); err == nil {
 		t.Error("exec command with only host and container should return an error")
 	}
 }
@@ -131,7 +119,7 @@ func TestExecCommand_MissingArgs(t *testing.T) {
 func TestMockSSHClient_Execute(t *testing.T) {
 	expectedOutput := "test output"
 	
-	client := &MockSSHClient{
+	client := &test.MockSSHClient{
 		ExecuteFunc: func(ctx context.Context, cmd string) (string, error) {
 			return expectedOutput, nil
 		},
@@ -149,7 +137,7 @@ func TestMockSSHClient_Execute(t *testing.T) {
 func TestMockSSHClient_ExecuteError(t *testing.T) {
 	expectedErr := errors.New("connection failed")
 	
-	client := &MockSSHClient{
+	client := &test.MockSSHClient{
 		ExecuteFunc: func(ctx context.Context, cmd string) (string, error) {
 			return "", expectedErr
 		},
@@ -163,7 +151,7 @@ func TestMockSSHClient_ExecuteError(t *testing.T) {
 
 // Test MockConfig
 func TestMockConfig_GetHostByName(t *testing.T) {
-	cfg := MockConfig()
+	cfg := test.MockConfig()
 	
 	host := cfg.GetHostByName("host1")
 	if host == nil {
@@ -175,7 +163,7 @@ func TestMockConfig_GetHostByName(t *testing.T) {
 }
 
 func TestMockConfig_GetHostByNameNotFound(t *testing.T) {
-	cfg := MockConfig()
+	cfg := test.MockConfig()
 	
 	host := cfg.GetHostByName("nonexistent")
 	if host != nil {
@@ -184,7 +172,7 @@ func TestMockConfig_GetHostByNameNotFound(t *testing.T) {
 }
 
 func TestMockConfig_GetHostOrGroup(t *testing.T) {
-	cfg := MockConfig()
+	cfg := test.MockConfig()
 	
 	// Test single host
 	hosts := cfg.GetHostOrGroup("host1")
