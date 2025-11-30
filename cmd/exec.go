@@ -36,7 +36,7 @@ var execCmd = &cobra.Command{
 
 		client, err := ssh.NewClient(ssh.ClientConfig{
 			Host:       host.Address,
-			Port:       22,
+			Port:       host.Port,
 			Username:   host.Username,
 			PrivateKey: host.PrivateKey,
 		})

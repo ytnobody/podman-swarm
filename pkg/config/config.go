@@ -11,6 +11,7 @@ import (
 type Host struct {
 	Name       string `yaml:"name"`
 	Address    string `yaml:"address"`
+	Port       int    `yaml:"port"`
 	Username   string `yaml:"username"`
 	PrivateKey string `yaml:"private_key"`
 }

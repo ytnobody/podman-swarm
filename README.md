@@ -61,10 +61,12 @@ Create a configuration file at `~/.config/podman-swarm/hosts.yaml`:
 hosts:
   - name: host1
     address: 192.168.1.10
+    port: 22
     username: ubuntu
     private_key: ~/.ssh/id_rsa
   - name: host2
     address: 192.168.1.11
+    port: 2222
     username: ubuntu
     private_key: ~/.ssh/id_rsa
 
@@ -74,6 +76,13 @@ groups:
       - host1
       - host2
 ```
+
+**Configuration Parameters:**
+- `name`: Unique identifier for the host
+- `address`: Hostname or IP address
+- `port`: SSH port number (default: 22, optional)
+- `username`: SSH username
+- `private_key`: Path to SSH private key file
 
 ## Usage
 

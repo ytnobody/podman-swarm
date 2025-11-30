@@ -57,7 +57,7 @@ func checkHostStatus(host config.Host) statusResult {
 
 	client, err := ssh.NewClient(ssh.ClientConfig{
 		Host:       host.Address,
-		Port:       22,
+		Port:       host.Port,
 		Username:   host.Username,
 		PrivateKey: host.PrivateKey,
 	})

@@ -44,7 +44,7 @@ func removeContainerOnHost(host *config.Host, containerID string) error {
 
 	client, err := ssh.NewClient(ssh.ClientConfig{
 		Host:       host.Address,
-		Port:       22,
+		Port:       host.Port,
 		Username:   host.Username,
 		PrivateKey: host.PrivateKey,
 	})

@@ -46,7 +46,7 @@ func runContainerOnHost(host *config.Host, image string, args []string) error {
 
 	client, err := ssh.NewClient(ssh.ClientConfig{
 		Host:       host.Address,
-		Port:       22,
+		Port:       host.Port,
 		Username:   host.Username,
 		PrivateKey: host.PrivateKey,
 	})
