@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"os"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -25,7 +24,6 @@ type ClientConfig struct {
 
 type sshClient struct {
 	session *ssh.Session
-	conn    *ssh.ClientConn
 	client  *ssh.Client
 }
 

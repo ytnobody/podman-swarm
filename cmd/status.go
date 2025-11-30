@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"sync"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -52,7 +52,7 @@ type statusResult struct {
 }
 
 func checkHostStatus(host config.Host) statusResult {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Duration(1e9))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	client, err := ssh.NewClient(ssh.ClientConfig{
