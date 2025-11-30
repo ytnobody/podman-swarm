@@ -56,6 +56,7 @@ Execute native `podman` commands on remote hosts for a group or single host.
 | **N-03** | **Authentication Method** | Support only SSH **public key authentication**. |
 | **N-04** | **Concurrent Processing** | SSH connections and command execution to multiple hosts should be processed concurrently using **goroutines** to optimize processing speed. |
 | **N-05** | **Dependencies** | The runtime environment should not have dependencies on Go runtime or other languages (Python, Ruby, etc.). |
+| **N-05a** | **Podman Location** | **Podman must only be installed on remote hosts being managed. The manager machine does NOT require Podman.** |
 | **N-06** | **Error Handling** | Clearly notify the user of the source and details of SSH connection failures, command execution errors, JSON parsing errors, etc. |
 | **N-07** | **Output Format** | Output from information display commands like `ps` should be in **formatted table format** that is easy to read in the CLI, and should also provide JSON output options (e.g., `--json`) as needed. |
 

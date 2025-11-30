@@ -6,6 +6,10 @@ A centralized CLI tool for managing Podman container groups across multiple remo
 
 `podman-swarm` allows you to manage Podman containers across multiple remote hosts from a single CLI interface. It uses SSH as the sole communication channel and executes native `podman` commands directly on remote hosts.
 
+### Key Point
+
+**Podman must be installed only on the remote hosts you want to manage. The manager machine running `podman-swarm` does NOT need Podman installed.**
+
 ## Features
 
 ### Inventory Management
@@ -26,11 +30,30 @@ A centralized CLI tool for managing Podman container groups across multiple remo
 
 ## Installation
 
+### Requirements
+
+- **Go 1.21 or later** (for building from source)
+- **SSH access** to remote hosts with Podman installed
+- **Podman** installed on **remote hosts only** (not required on the manager machine)
+
+### Building from Source
+
 ```bash
 go build -o podman-swarm
 ```
 
+This creates a single static binary that can be used to manage Podman containers on remote hosts.
+
 ## Configuration
+
+### Prerequisites for Remote Hosts
+
+- Podman installed and running
+- SSH server running
+- SSH public key authentication enabled
+- User with permission to run podman commands (may need sudo)
+
+### Configuration File
 
 Create a configuration file at `~/.config/podman-swarm/hosts.yaml`:
 
