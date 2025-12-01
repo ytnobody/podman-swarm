@@ -55,7 +55,7 @@ func runContainerOnHost(host *config.Host, image string, args []string) error {
 	}
 	defer client.Close()
 
-	cmdStr := fmt.Sprintf("podman run %s %s", image, strings.Join(args, " "))
+	cmdStr := fmt.Sprintf("podman run %s %s", strings.Join(args, " "), image)
 	output, err := client.Execute(ctx, cmdStr)
 	if err != nil {
 		return err

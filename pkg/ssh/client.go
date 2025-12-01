@@ -23,8 +23,7 @@ type ClientConfig struct {
 }
 
 type sshClient struct {
-	session *ssh.Session
-	client  *ssh.Client
+	client *ssh.Client
 }
 
 // NewClient creates a new SSH client
@@ -59,24 +58,23 @@ func NewClient(config ClientConfig) (Client, error) {
 		return nil, fmt.Errorf("failed to dial: %w", err)
 	}
 
-	session, err := client.NewSession()
-	if err != nil {
-		client.Close()
-		return nil, fmt.Errorf("failed to create session: %w", err)
-	}
-
 	return &sshClient{
-		session: session,
-		client:  client,
+		client: client,
 	}, nil
 }
 
 func (c *sshClient) Execute(ctx context.Context, cmd string) (string, error) {
-	var stdout, stderr bytes.Buffer
-	c.session.Stdout = &stdout
-	c.session.Stderr = &stderr
+	session, err := c.client.NewSession()
+	if err != nil {
+		return "", fmt.Errorf("failed to create session: %w", err)
+	}
+	defer session.Close()
 
-	if err := c.session.Run(cmd); err != nil {
+	var stdout, stderr bytes.Buffer
+	session.Stdout = &stdout
+	session.Stderr = &stderr
+
+	if err := session.Run(cmd); err != nil {
 		return "", fmt.Errorf("command failed: %v, stderr: %s", err, stderr.String())
 	}
 
@@ -84,9 +82,6 @@ func (c *sshClient) Execute(ctx context.Context, cmd string) (string, error) {
 }
 
 func (c *sshClient) Close() error {
-	if c.session != nil {
-		c.session.Close()
-	}
 	if c.client != nil {
 		return c.client.Close()
 	}
